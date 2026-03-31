@@ -120,7 +120,7 @@ mqttClient.on('message', async (topic, message) => {
         console.log('📍 NEW POTHOLE EVENT RECEIVED!');
         console.log(`Location: ${potholeData.latitude}, ${potholeData.longitude}`);
         console.log(`Severity: Level ${potholeData.severity}`); 
-        console.log(`Device:   ${potholeData.device_id}`);
+        console.log(`Reporter:   ${potholeData.reported_id}`);
         console.log('==================================');
 
         console.log('⏳ Saving to database...');
