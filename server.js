@@ -40,6 +40,58 @@ app.get('/api/potholes', async (req, res) => {
     }
 });
 
+// --- REGION-BASED POTHOLES ---
+app.get('/api/potholes/region/:region', async (req, res) => {
+    try {
+        const { region } = req.params;
+        const regionBounds = {
+            'hinjewadi': { minLat: 18.59, maxLat: 18.61, minLng: 73.75, maxLng: 73.77 },
+            'baner': { minLat: 18.55, maxLat: 18.57, minLng: 73.79, maxLng: 73.82 },
+            'viman-nagar': { minLat: 18.56, maxLat: 18.58, minLng: 73.90, maxLng: 73.93 },
+            'aundh': { minLat: 18.57, maxLat: 18.59, minLng: 73.82, maxLng: 73.85 },
+            'pimpri-chinchwad': { minLat: 18.62, maxLat: 18.65, minLng: 73.79, maxLng: 73.82 },
+            'downtown': { minLat: 18.51, maxLat: 18.54, minLng: 73.84, maxLng: 73.87 },
+        };
+
+        const bounds = regionBounds[region.toLowerCase()];
+        if (!bounds) {
+            return res.status(400).json({ error: 'Region not found' });
+        }
+
+        const query = `
+            SELECT * FROM potholes 
+            WHERE latitude >= $1 AND latitude <= $2 
+            AND longitude >= $3 AND longitude <= $4 
+            ORDER BY created_at DESC
+        `;
+        
+        const result = await dbClient.query(query, [bounds.minLat, bounds.maxLat, bounds.minLng, bounds.maxLng]);
+        console.log(`✅ Fetched ${result.rows.length} potholes from ${region}`);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching region potholes:', error);
+        res.status(500).json({ error: 'Failed to fetch region data' });
+    }
+});
+
+// --- GET ALL REGIONS ---
+app.get('/api/regions', async (req, res) => {
+    try {
+        const regions = [
+            { name: 'Hinjewadi', value: 'hinjewadi', color: '#FF6B6B' },
+            { name: 'Baner', value: 'baner', color: '#4ECDC4' },
+            { name: 'Viman Nagar', value: 'viman-nagar', color: '#45B7D1' },
+            { name: 'Aundh', value: 'aundh', color: '#FFA07A' },
+            { name: 'Pimpri-Chinchwad', value: 'pimpri-chinchwad', color: '#98D8C8' },
+            { name: 'Downtown', value: 'downtown', color: '#F7DC6F' },
+        ];
+        res.json(regions);
+    } catch (error) {
+        console.error('Error fetching regions:', error);
+        res.status(500).json({ error: 'Failed to fetch regions' });
+    }
+});
+
 // Start the Express Server
 const PORT = 3000;
 app.listen(PORT, '0.0.0.0', () => {

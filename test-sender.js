@@ -6,11 +6,11 @@ const client = mqtt.connect('mqtt://broker.hivemq.com:1883');
 client.on('connect', () => {
     // 1. Create a perfectly formatted JavaScript object
     const potholeData = {
-        latitude: 25.5500,
-        longitude: 73.8900,
-        severity: 3,
-        reported_id: 1
-    };
+    latitude: 18.5236,      // Pune center
+    longitude: 73.8338,
+    severity: 4,
+    reported_id: 3
+};
 
     // 2. Convert it safely to a JSON string
     const payload = JSON.stringify(potholeData);
