@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "dev": "node server.js",
+    "build": "echo \"No build needed for Node.js\""
   },
   "keywords": [],
   "author": "",
@@ -17,5 +20,8 @@
     "express": "^5.2.1",
     "mqtt": "^5.15.1",
     "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }
