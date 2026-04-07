@@ -40,6 +40,52 @@ app.get('/api/potholes', async (req, res) => {
     }
 });
 
+// --- 4. EXPRESS ROUTE: Save New Pothole Report (Mobile App POST) ---
+app.post('/api/potholes', async (req, res) => {
+    try {
+        const { latitude, longitude, severity, reporter_id } = req.body;
+        
+        // Validation: Check if required fields are present
+        if (latitude === undefined || longitude === undefined || !severity || !reporter_id) {
+            return res.status(400).json({ 
+                error: 'Missing required fields: latitude, longitude, severity, reporter_id' 
+            });
+        }
+
+        console.log('\n==================================');
+        console.log('📍 NEW POTHOLE REPORT RECEIVED FROM MOBILE APP!');
+        console.log(`Location: ${latitude}, ${longitude}`);
+        console.log(`Severity: Level ${severity}`);
+        console.log(`Reporter: ${reporter_id}`);
+        console.log('==================================');
+
+        console.log('⏳ Saving to database...');
+
+        const insertQuery = `
+            INSERT INTO potholes (latitude, longitude, severity, status, reporter_id)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *;
+        `;
+        
+        const values = [latitude, longitude, severity, 'reported', reporter_id];
+        const result = await dbClient.query(insertQuery, values);
+        
+        console.log(`✅ Successfully saved! Database ID: ${result.rows[0].id}`);
+
+        // Fetch updated data from the database
+        const updatedResult = await dbClient.query('SELECT * FROM potholes ORDER BY created_at DESC');
+        
+        res.status(201).json({
+            message: 'Pothole report saved successfully',
+            newPothole: result.rows[0],
+            allPotholes: updatedResult.rows
+        });
+    } catch (error) {
+        console.error('❌ Failed to save pothole report:', error);
+        res.status(500).json({ error: 'Failed to save pothole report' });
+    }
+});
+
 // --- REGION-BASED POTHOLES ---
 app.get('/api/potholes/region/:region', async (req, res) => {
     try {
