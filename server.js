@@ -59,6 +59,31 @@ app.post('/api/potholes', async (req, res) => {
         console.log(`Reporter: ${reporter_id}`);
         console.log('==================================');
 
+        // Check if pothole with same latitude and longitude already exists
+        const tolerance = 0.0001; // approximately 11 meters
+        const duplicateQuery = `
+            SELECT * FROM potholes 
+            WHERE ABS(latitude - $1) < $3 
+            AND ABS(longitude - $2) < $3
+            LIMIT 1;
+        `;
+        
+        const duplicateCheck = await dbClient.query(duplicateQuery, [latitude, longitude, tolerance]);
+        
+        if (duplicateCheck.rows.length > 0) {
+            console.log('⚠️ Duplicate pothole found at this location!');
+            console.log(`Existing pothole ID: ${duplicateCheck.rows[0].id}`);
+            
+            // Fetch all potholes and return without inserting
+            const updatedResult = await dbClient.query('SELECT * FROM potholes ORDER BY created_at DESC');
+            
+            return res.status(409).json({
+                message: 'Pothole already reported at this location',
+                existingPothole: duplicateCheck.rows[0],
+                allPotholes: updatedResult.rows
+            });
+        }
+
         console.log('⏳ Saving to database...');
 
         const insertQuery = `
